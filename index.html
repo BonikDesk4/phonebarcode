@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Barcode Scanner Demo v3</title>
+<title>Barcode Scanner Demo</title>
 
 <!-- ZXing Barcode Library -->
 <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
@@ -71,7 +71,7 @@ button {
 
 <body>
 
-<h1>Barcode Scanner Demo</h1>
+<h1>Barcode Scanner Demo v4</h1>
 
 <div class="scanner-box">
     <input type="text" id="barcodeInput" placeholder="Enter barcode manually">
@@ -142,14 +142,16 @@ function startScanner() {
 
         const selectedDeviceId = backCamera ? backCamera.deviceId : videoInputDevices[0].deviceId;
 
+        // Start scanning, but do nothing with the result
         codeReader.decodeOnceFromVideoDevice(selectedDeviceId, 'video-preview')
             .then(result => {
-                inputField.value = result.text;
-                filterProducts(result.text);
+                console.log("Scanned barcode (ignored):", result.text);
+                // Do NOT populate input or filter products
             })
             .catch(err => console.error(err));
     }).catch(err => alert("Camera not found: " + err));
 }
+
 </script>
 
 </body>
