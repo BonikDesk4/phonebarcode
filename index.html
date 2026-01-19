@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Barcode Scanner Demo v 2</title>
+<title>Barcode Scanner Demo v3</title>
 
 <!-- ZXing Barcode Library -->
 <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
@@ -15,7 +15,6 @@ body {
     margin: 0;
     padding: 15px;
 }
-
 h1 { text-align: center; margin-bottom: 10px; }
 
 .scanner-box {
@@ -80,8 +79,7 @@ button {
     <video id="video-preview"></video>
 </div>
 
-<div class="grid" id="productGrid">
-</div>
+<div class="grid" id="productGrid"></div>
 
 <script>
 const products = [
@@ -130,15 +128,19 @@ inputField.addEventListener("input", () => {
     filterProducts(inputField.value.trim());
 });
 
-// Barcode Scanner
-let selectedDeviceId;
+// Barcode Scanner with back camera
 let codeReader;
 
 function startScanner() {
     codeReader = new ZXing.BrowserBarcodeReader();
 
     codeReader.getVideoInputDevices().then(videoInputDevices => {
-        selectedDeviceId = videoInputDevices[0].deviceId;
+        // Look for back camera
+        let backCamera = videoInputDevices.find(device =>
+            /back|rear|environment/i.test(device.label)
+        );
+
+        const selectedDeviceId = backCamera ? backCamera.deviceId : videoInputDevices[0].deviceId;
 
         codeReader.decodeOnceFromVideoDevice(selectedDeviceId, 'video-preview')
             .then(result => {
