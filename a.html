@@ -71,7 +71,7 @@ button {
 
 <body>
 
-<h1>Barcode Scanner Demo v4</h1>
+<h1>Barcode Scanner Demo</h1>
 
 <div class="scanner-box">
     <input type="text" id="barcodeInput" placeholder="Enter barcode manually">
@@ -142,16 +142,14 @@ function startScanner() {
 
         const selectedDeviceId = backCamera ? backCamera.deviceId : videoInputDevices[0].deviceId;
 
-        // Start scanning, but do nothing with the result
         codeReader.decodeOnceFromVideoDevice(selectedDeviceId, 'video-preview')
             .then(result => {
-                console.log("Scanned barcode (ignored):", result.text);
-                // Do NOT populate input or filter products
+                inputField.value = result.text;
+                filterProducts(result.text);
             })
             .catch(err => console.error(err));
     }).catch(err => alert("Camera not found: " + err));
 }
-
 </script>
 
 </body>
