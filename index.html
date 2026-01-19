@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Product Scanner Demo</title>
+<title>Barcode Scanner Demo v 2</title>
 
-<!-- QR Scanner Library -->
-<script src="https://unpkg.com/html5-qrcode"></script>
+<!-- ZXing Barcode Library -->
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
 
 <style>
 body {
@@ -15,6 +15,7 @@ body {
     margin: 0;
     padding: 15px;
 }
+
 h1 { text-align: center; margin-bottom: 10px; }
 
 .scanner-box {
@@ -44,7 +45,11 @@ button {
     margin-top: 10px;
 }
 
-#reader { width: 100%; margin-top: 15px; }
+#video-preview {
+    width: 100%;
+    margin-top: 15px;
+    border-radius: 6px;
+}
 
 .grid {
     display: grid;
@@ -61,19 +66,18 @@ button {
 }
 
 .price { color: #2e7d32; font-weight: bold; margin-top: 5px; }
-
 .hidden { display: none; }
-
 </style>
 </head>
+
 <body>
 
-<h1>Product Scanner Demo</h1>
+<h1>Barcode Scanner Demo</h1>
 
 <div class="scanner-box">
-    <input type="text" id="barcodeInput" placeholder="Enter barcode or scan QR code">
-    <button onclick="startScanner()">📷 Scan QR Code</button>
-    <div id="reader"></div>
+    <input type="text" id="barcodeInput" placeholder="Enter barcode manually">
+    <button onclick="startScanner()">📷 Scan Barcode</button>
+    <video id="video-preview"></video>
 </div>
 
 <div class="grid" id="productGrid">
@@ -81,26 +85,26 @@ button {
 
 <script>
 const products = [
-  { name: "Rice 5kg", barcode: "1001", qr: "QR1001", price: "৳450" },
-  { name: "Cooking Oil 1L", barcode: "1002", qr: "QR1002", price: "৳180" },
-  { name: "Sugar 1kg", barcode: "1003", qr: "QR1003", price: "৳120" },
-  { name: "Milk Powder", barcode: "1004", qr: "QR1004", price: "৳550" },
-  { name: "Salt 1kg", barcode: "1005", qr: "QR1005", price: "৳45" },
-  { name: "Flour 2kg", barcode: "1006", qr: "QR1006", price: "৳220" },
-  { name: "Tea 250g", barcode: "1007", qr: "QR1007", price: "৳150" },
-  { name: "Coffee 200g", barcode: "1008", qr: "QR1008", price: "৳300" },
-  { name: "Biscuits Pack", barcode: "1009", qr: "QR1009", price: "৳90" },
-  { name: "Chocolates", barcode: "1010", qr: "QR1010", price: "৳200" },
-  { name: "Juice 1L", barcode: "1011", qr: "QR1011", price: "৳110" },
-  { name: "Soft Drink 500ml", barcode: "1012", qr: "QR1012", price: "৳70" },
-  { name: "Noodles Pack", barcode: "1013", qr: "QR1013", price: "৳60" },
-  { name: "Tomato Ketchup", barcode: "1014", qr: "QR1014", price: "৳130" },
-  { name: "Mustard Sauce", barcode: "1015", qr: "QR1015", price: "৳140" },
-  { name: "Soap", barcode: "1016", qr: "QR1016", price: "৳50" },
-  { name: "Shampoo 200ml", barcode: "1017", qr: "QR1017", price: "৳180" },
-  { name: "Toothpaste", barcode: "1018", qr: "QR1018", price: "৳90" },
-  { name: "Detergent 1kg", barcode: "1019", qr: "QR1019", price: "৳250" },
-  { name: "Dishwash Liquid", barcode: "1020", qr: "QR1020", price: "৳160" }
+  { name: "Rice 5kg", barcode: "1001", price: "৳450" },
+  { name: "Cooking Oil 1L", barcode: "1002", price: "৳180" },
+  { name: "Sugar 1kg", barcode: "1003", price: "৳120" },
+  { name: "Milk Powder", barcode: "1004", price: "৳550" },
+  { name: "Salt 1kg", barcode: "1005", price: "৳45" },
+  { name: "Flour 2kg", barcode: "1006", price: "৳220" },
+  { name: "Tea 250g", barcode: "1007", price: "৳150" },
+  { name: "Coffee 200g", barcode: "1008", price: "৳300" },
+  { name: "Biscuits Pack", barcode: "1009", price: "৳90" },
+  { name: "Chocolates", barcode: "1010", price: "৳200" },
+  { name: "Juice 1L", barcode: "1011", price: "৳110" },
+  { name: "Soft Drink 500ml", barcode: "1012", price: "৳70" },
+  { name: "Noodles Pack", barcode: "1013", price: "৳60" },
+  { name: "Tomato Ketchup", barcode: "1014", price: "৳130" },
+  { name: "Mustard Sauce", barcode: "1015", price: "৳140" },
+  { name: "Soap", barcode: "1016", price: "৳50" },
+  { name: "Shampoo 200ml", barcode: "1017", price: "৳180" },
+  { name: "Toothpaste", barcode: "1018", price: "৳90" },
+  { name: "Detergent 1kg", barcode: "1019", price: "৳250" },
+  { name: "Dishwash Liquid", barcode: "1020", price: "৳160" }
 ];
 
 // Generate product grid
@@ -109,48 +113,40 @@ products.forEach(p => {
     const div = document.createElement("div");
     div.className = "card";
     div.setAttribute("data-barcode", p.barcode);
-    div.setAttribute("data-qr", p.qr);
-    div.innerHTML = `<strong>${p.name}</strong><div>Barcode: ${p.barcode}</div><div>QR: ${p.qr}</div><div class="price">${p.price}</div>`;
+    div.innerHTML = `<strong>${p.name}</strong><div>Barcode: ${p.barcode}</div><div class="price">${p.price}</div>`;
     grid.appendChild(div);
 });
 
-let html5QrCode;
-
-function startScanner() {
-    const reader = document.getElementById("reader");
-    reader.innerHTML = "Starting camera...";
-
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert("Camera not supported on this browser");
-        return;
-    }
-
-    html5QrCode = new Html5Qrcode("reader");
-
-    html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        qrCodeMessage => {
-            document.getElementById("barcodeInput").value = qrCodeMessage;
-            filterProducts(qrCodeMessage);
-            html5QrCode.stop().then(() => { reader.innerHTML = ""; });
-        },
-        errorMessage => {}
-    ).catch(err => { alert("Camera error: " + err); reader.innerHTML = ""; });
-}
-
-// Filter products when typing or scanning
-const inputField = document.getElementById("barcodeInput");
-inputField.addEventListener("input", () => {
-    const code = inputField.value.trim();
-    filterProducts(code);
-});
-
+// Filter function
 function filterProducts(code) {
     document.querySelectorAll(".card").forEach(card => {
-        const match = card.getAttribute("data-barcode") === code || card.getAttribute("data-qr") === code || code === "";
-        card.style.display = match ? "block" : "none";
+        card.style.display = code === "" || card.getAttribute("data-barcode") === code ? "block" : "none";
     });
+}
+
+// Input field filter
+const inputField = document.getElementById("barcodeInput");
+inputField.addEventListener("input", () => {
+    filterProducts(inputField.value.trim());
+});
+
+// Barcode Scanner
+let selectedDeviceId;
+let codeReader;
+
+function startScanner() {
+    codeReader = new ZXing.BrowserBarcodeReader();
+
+    codeReader.getVideoInputDevices().then(videoInputDevices => {
+        selectedDeviceId = videoInputDevices[0].deviceId;
+
+        codeReader.decodeOnceFromVideoDevice(selectedDeviceId, 'video-preview')
+            .then(result => {
+                inputField.value = result.text;
+                filterProducts(result.text);
+            })
+            .catch(err => console.error(err));
+    }).catch(err => alert("Camera not found: " + err));
 }
 </script>
 
