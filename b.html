@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Scanner</title>
+
+<!-- QR Scanner Library -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+    padding: 15px;
+}
+h1 { text-align: center; margin-bottom: 10px; }
+
+.scanner-box {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    margin-bottom: 15px;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    font-size: 18px;
+    border-radius: 6px;
+    border: 2px solid #ddd;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    background: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+#reader { width: 100%; margin-top: 15px; }
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.card {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.price { color: #2e7d32; font-weight: bold; margin-top: 5px; }
+
+.hidden { display: none; }
+</style>
+</head>
+
+<body>
+
+<h1>Product Scanner</h1>
+
+<div class="scanner-box">
+    <input type="text" id="barcodeInput" placeholder="Enter barcode or scan QR code">
+    <button onclick="startScanner()">📷 Scan QR Code</button>
+    <div id="reader"></div>
+</div>
+
+<div class="grid" id="productGrid">
+    <div class="card" data-code="1001">
+        <strong>Rice 5kg</strong>
+        <div>Code: 1001</div>
+        <div class="price">৳450</div>
+    </div>
+
+    <div class="card" data-code="1002">
+        <strong>Cooking Oil 1L</strong>
+        <div>Code: 1002</div>
+        <div class="price">৳180</div>
+    </div>
+
+    <div class="card" data-code="1003">
+        <strong>Sugar 1kg</strong>
+        <div>Code: 1003</div>
+        <div class="price">৳120</div>
+    </div>
+
+    <div class="card" data-code="1004">
+        <strong>Milk Powder</strong>
+        <div>Code: 1004</div>
+        <div class="price">৳550</div>
+    </div>
+</div>
+
+<script>
+let html5QrCode;
+
+// Start QR scanner
+function startScanner() {
+    const reader = document.getElementById("reader");
+    reader.innerHTML = "Starting camera...";
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Camera not supported on this browser");
+        return;
+    }
+
+    html5QrCode = new Html5Qrcode("reader");
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        qrCodeMessage => {
+            // Fill the same input field with scanned QR/barcode
+            document.getElementById("barcodeInput").value = qrCodeMessage;
+            filterProducts(qrCodeMessage);
+
+            html5QrCode.stop().then(() => {
+                reader.innerHTML = "";
+            });
+        },
+        errorMessage => {}
+    ).catch(err => {
+        alert("Camera error: " + err);
+        reader.innerHTML = "";
+    });
+}
+
+// Filter products based on input field
+const inputField = document.getElementById("barcodeInput");
+inputField.addEventListener("input", () => {
+    const code = inputField.value.trim();
+    filterProducts(code);
+});
+
+function filterProducts(code) {
+    document.querySelectorAll(".card").forEach(card => {
+        card.style.display =
+            code === "" || card.getAttribute("data-code") === code
+                ? "block" : "none";
+    });
+}
+</script>
+
+</body>
+</html>

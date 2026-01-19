@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barcode Scanner Demo</title>
+
+<!-- ZXing Barcode Library -->
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+    padding: 15px;
+}
+h1 { text-align: center; margin-bottom: 10px; }
+
+.scanner-box {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    margin-bottom: 15px;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    font-size: 18px;
+    border-radius: 6px;
+    border: 2px solid #ddd;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    background: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+#video-preview {
+    width: 100%;
+    margin-top: 15px;
+    border-radius: 6px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.card {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.price { color: #2e7d32; font-weight: bold; margin-top: 5px; }
+.hidden { display: none; }
+</style>
+</head>
+
+<body>
+
+<h1>Barcode Scanner Demo v4</h1>
+
+<div class="scanner-box">
+    <input type="text" id="barcodeInput" placeholder="Enter barcode manually">
+    <button onclick="startScanner()">📷 Scan Barcode</button>
+    <video id="video-preview"></video>
+</div>
+
+<div class="grid" id="productGrid"></div>
+
+<script>
+const products = [
+  { name: "Rice 5kg", barcode: "1001", price: "৳450" },
+  { name: "Cooking Oil 1L", barcode: "1002", price: "৳180" },
+  { name: "Sugar 1kg", barcode: "1003", price: "৳120" },
+  { name: "Milk Powder", barcode: "1004", price: "৳550" },
+  { name: "Salt 1kg", barcode: "1005", price: "৳45" },
+  { name: "Flour 2kg", barcode: "1006", price: "৳220" },
+  { name: "Tea 250g", barcode: "1007", price: "৳150" },
+  { name: "Coffee 200g", barcode: "1008", price: "৳300" },
+  { name: "Biscuits Pack", barcode: "1009", price: "৳90" },
+  { name: "Chocolates", barcode: "1010", price: "৳200" },
+  { name: "Juice 1L", barcode: "1011", price: "৳110" },
+  { name: "Soft Drink 500ml", barcode: "1012", price: "৳70" },
+  { name: "Noodles Pack", barcode: "1013", price: "৳60" },
+  { name: "Tomato Ketchup", barcode: "1014", price: "৳130" },
+  { name: "Mustard Sauce", barcode: "1015", price: "৳140" },
+  { name: "Soap", barcode: "1016", price: "৳50" },
+  { name: "Shampoo 200ml", barcode: "1017", price: "৳180" },
+  { name: "Toothpaste", barcode: "1018", price: "৳90" },
+  { name: "Detergent 1kg", barcode: "1019", price: "৳250" },
+  { name: "Dishwash Liquid", barcode: "1020", price: "৳160" }
+];
+
+// Generate product grid
+const grid = document.getElementById("productGrid");
+products.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.setAttribute("data-barcode", p.barcode);
+    div.innerHTML = `<strong>${p.name}</strong><div>Barcode: ${p.barcode}</div><div class="price">${p.price}</div>`;
+    grid.appendChild(div);
+});
+
+// Filter function
+function filterProducts(code) {
+    document.querySelectorAll(".card").forEach(card => {
+        card.style.display = code === "" || card.getAttribute("data-barcode") === code ? "block" : "none";
+    });
+}
+
+// Input field filter
+const inputField = document.getElementById("barcodeInput");
+inputField.addEventListener("input", () => {
+    filterProducts(inputField.value.trim());
+});
+
+// Barcode Scanner with back camera
+let codeReader;
+
+function startScanner() {
+    codeReader = new ZXing.BrowserBarcodeReader();
+
+    codeReader.getVideoInputDevices().then(videoInputDevices => {
+        // Look for back camera
+        let backCamera = videoInputDevices.find(device =>
+            /back|rear|environment/i.test(device.label)
+        );
+
+        const selectedDeviceId = backCamera ? backCamera.deviceId : videoInputDevices[0].deviceId;
+
+        // Start scanning, but do nothing with the result
+        codeReader.decodeOnceFromVideoDevice(selectedDeviceId, 'video-preview')
+            .then(result => {
+                console.log("Scanned barcode (ignored):", result.text);
+                // Do NOT populate input or filter products
+            })
+            .catch(err => console.error(err));
+    }).catch(err => alert("Camera not found: " + err));
+}
+
+</script>
+
+</body>
+</html>
