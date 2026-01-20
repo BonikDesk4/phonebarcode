@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZXing Barcode Scanner Demo</title>
+
+<!-- ZXing Library -->
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 15px;
+}
+
+.container {
+    max-width: 420px;
+    margin: auto;
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+video {
+    width: 100%;
+    border-radius: 10px;
+    border: 2px solid #ddd;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+button {
+    width: 48%;
+    padding: 12px;
+    font-size: 16px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.start {
+    background: #28a745;
+    color: white;
+}
+
+.stop {
+    background: #dc3545;
+    color: white;
+}
+
+.buttons {
+    display: flex;
+    justify-content: space-between;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+    <h2>ZXing Barcode Scanner</h2>
+
+    <video id="video" autoplay></video>
+
+    <input type="text" id="barcodeResult" placeholder="Scanned barcode will appear here">
+
+    <div class="buttons">
+        <button class="start" onclick="startScan()">Start Scan</button>
+        <button class="stop" onclick="stopScan()">Stop Scan</button>
+    </div>
+</div>
+
+<script>
+const codeReader = new ZXing.BrowserMultiFormatReader();
+let selectedDeviceId = null;
+
+async function startScan() {
+    try {
+        const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
+
+        // Prefer BACK camera
+        selectedDeviceId = devices.find(d =>
+            d.label.toLowerCase().includes('back')
+        )?.deviceId || devices[0].deviceId;
+
+        codeReader.decodeFromVideoDevice(
+            selectedDeviceId,
+            'video',
+            (result, err) => {
+                if (result) {
+                    document.getElementById('barcodeResult').value = result.text;
+                    console.log('Barcode:', result.text);
+                }
+            }
+        );
+    } catch (error) {
+        alert("Camera error: " + error);
+    }
+}
+
+function stopScan() {
+    codeReader.reset();
+}
+</script>
+</body>
+</html>
